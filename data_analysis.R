@@ -3,20 +3,17 @@ library(googledrive)
 library(googlesheets4)
 library(glue)
 
-# Fetch the Data spreadsheet from Google sheets by ID
-id <-
-google_data <- drive_get(id = "1SxL0kpm8xXyslRKradFv03R6Sbr-YUkx09jOVW8RF8E")
-sheets <- sheets_get(google_data)
+# Only reimport from Google if we want to
+import <- readline(prompt="Reimport data from Google? Type 'yes'")
+if(toupper(import) == "YES") { source("import_script.R") }
 
-high_cholesterol <- read_sheet(sheets$spreadsheet_id, range="+CHOL, -Statin!A2:AL39")
-myalgia <- read_sheet(sheets$spreadsheet_id, range="+Myalgi, +Statin!A2:AL20")
-non_myalgia <- read_sheet(sheets$spreadsheet_id, range="-Myalgi, +Statin!A2:AL29")
-control <- read_sheet(sheets$spreadsheet_id, range="Kontrol!A2:AL18")
+source("create_normaldistribution_plots.R")
 
-high_cholesterol
-myalgia
-non_myalgia
-control
+# Find means for all variables for all groups with NA removed
+sapply(na.omit(control), mean)
+sapply(na.omit(myalgia), mean)
+sapply(na.omit(high_cholesterol), mean)
+sapply(na.omit(non_myalgia), mean)
 
 myalgi_bmi <- na.omit(myalgia$BMI)
 control_bmi <- na.omit(control$BMI)
@@ -32,3 +29,4 @@ mean(na.omit(control$`Total Cholesterol mmol/L`))
 
 t.test(control$`Total Cholesterol mmol/L`, high_cholesterol$`Total Cholesterol mmol/L`)
 t.test(control$`LDL mmol/L`, high_cholesterol$`LDL mmol/L`)
+
