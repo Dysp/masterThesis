@@ -1,13 +1,21 @@
 # Load GoogleDrive library to be able to fetch the data
 library(googledrive)
 library(googlesheets4)
+# Load Glue library for string interpolation
 library(glue)
 
-# Only reimport from Google if we want to
-import <- readline(prompt="Reimport data from Google? Type 'yes'")
-if(toupper(import) == "YES") { source("import_script.R") }
+# Only reimport from Google if we want to (if there is new data)
+import_question <- readline(prompt="Reimport data from Google? Type 'yes'")
+if(toupper(import_question) == "YES") { source("import_script.R") }
 
+# WIP: Create normal distribution plots for
 source("create_normaldistribution_plots.R")
+
+# TODO: Create box plots comparing means between the 4 groups
+
+# TODO: Create script that runs T tests for means of all 3 groups comparable to the control group
+
+########### Below this line is just messing around ########### 
 
 # Find means for all variables for all groups with NA removed
 sapply(na.omit(control), mean)
