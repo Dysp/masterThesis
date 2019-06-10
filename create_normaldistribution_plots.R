@@ -8,7 +8,7 @@ plotDistribution <- function(data_points) {
     # Remove N/A
     data_points_without_na <- na.omit(data_points)
     # Create plot
-    d <- density(data_points_without_na)
+    d = density(data_points_without_na)
     plot(d)
     rug(data_points)
     # Return how many N/A's were omitted
