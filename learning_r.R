@@ -96,3 +96,53 @@
       # etc...
 
 # 3.7 Statistical transformations
+  # The bar chart shows counts on the Y axis - that's an example of a STAT; Statistical Transformation.
+  ggplot(data = diamonds ) + geom_bar(mapping = aes(x = cut))
+  # A geom can use a default stat, as described here. "geom_bar() uses stat_count() as default"
+  ?geom_bar
+  # "You can generally use geoms and stats interchangeably. For example, you can recreate the previous plot using stat_count() instead of geom_bar()"
+  ggplot(data = diamonds) + stat_count(mapping = aes(x = cut))
+  # A geom has a default stat, and a stat has a default geom. That's the reason for the posibility above
+  
+  # Example demo data prepared
+  demo <- tribble(
+    ~cut,         ~freq,
+    "Fair",       1610,
+    "Good",       4906,
+    "Very Good",  12082,
+    "Premium",    13791,
+    "Ideal",      21551)
+  
+  # This overrides the default stat for the geom_bar; this way we can map frequences on the y axis.
+  ggplot(data = demo) +
+    geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
+  
+  # Overrides default mapping from transformed variables to aesthetics. A bar chart of proportion instead of count
+  ggplot(data = diamonds) + 
+    geom_bar(mapping = aes(x = cut, y = ..prop.., group = 1))
+  
+  # Provides data about variable range (min to max) around the median.
+  ggplot(data = diamonds) + 
+    stat_summary(
+      mapping = aes(x = cut, y = depth),
+      fun.ymin = min,
+      fun.ymax = max,
+      fun.y = median)
+  ?stat_summary
+  
+  # 3.7.1 Exercises
+    # 1 It's geom_pointrange
+    # 2 geom_bar uses stat_count (counts entries in the bin), geom_col uses stat_identity - it leaves the data as is. It seems like it just adds each
+    # entry point on top of each other
+      ?geom_col
+      ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut))
+      ggplot(data = diamonds) + geom_col(mapping = aes(x = cut, y = carat, color = carat, group = carat))
+    # 3 They are often named the same
+    # 4 Y is computed
+      ?stat_smooth
+    # 5 See solution
+      ggplot(data = diamonds) + 
+        geom_bar(mapping = aes(x = cut, y = ..prop..))
+      ggplot(data = diamonds) + 
+        geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..))
+                                         
