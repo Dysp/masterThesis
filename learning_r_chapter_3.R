@@ -145,4 +145,73 @@
         geom_bar(mapping = aes(x = cut, y = ..prop..))
       ggplot(data = diamonds) + 
         geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..))
-                                         
+      
+# 3.8 Position adjustments
+  # Coloring the bar charts with color or fill
+  ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, colour = cut))
+  ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = cut))
+  # But if we color by clarity instead, the stacking of observations is done automatically by the position adjustment.
+  ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity))
+  # I have no idea what the book is trying to showcase here with 'identity', it seems identical to the one above apart from the count? It's stacking
+  # on top of each other, maybe?
+  ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + geom_bar(alpha = 0.3, position = "identity")
+  ggplot(data = diamonds, mapping = aes(x = cut, color = clarity)) + geom_bar(fill = NA, position = "identity")
+  # 'Dodge' will place the 'fills' next to each other
+  ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + geom_bar(position = "dodge")
+  # 'Fill' works like stacking, but makes the bars the same height
+  ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + geom_bar(position = "fill")
+  # Identical observations in a scatterplot will stack. We can add some random noise to the position of each observation
+  # with 'jitter' and reveal the stacking ones
+  ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy))
+  ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+  # Which can also be done by using its own geom
+  ggplot(data = mpg) + geom_jitter(mapping = aes(x = displ, y = hwy))
+  # In summary, the following positions exist: 'identity', 'fill', 'stack', 'dodge' & 'jitter'
+  
+  # 3.8.1 Exercises
+    # 1 I can be improved with jitter to reveal the stacking observations (overplotting)
+      ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + geom_jitter()
+    # 2 width and height determines the amount of jitter in both axes
+      ?geom_jitter
+    # 3 Aaaaaalrighty
+      ?geom_count
+      ggplot(data = mpg) + geom_count(mapping = aes(x = cty, y = hwy))
+      ?geom_jitter
+      ggplot(data = mpg) + geom_jitter(mapping = aes(x = cty, y = hwy))
+    # 4 It's dodge2, which is a special case for box plots
+      ggplot(data = mpg, aes(x = drv, y = hwy, colour = class)) + geom_boxplot()
+      ?geom_boxplot
+      ?position_dodge2
+
+# 3.9 Coordinate systems
+  # coord_flip() flips the axes
+    ggplot(data = mpg, aes(x = drv, y = hwy, colour = class)) + geom_boxplot() + coord_flip()
+  # coord_quickmap() sets the aspect ratio correctly for maps.
+  # coord_polar() uses polar coordinates
+    bar <- ggplot(data = diamonds) + 
+      geom_bar(
+        mapping = aes(x = cut, fill = cut), 
+        show.legend = FALSE,
+        width = 1
+      ) + 
+      theme(aspect.ratio = 1) +
+      labs(x = NULL, y = NULL)
+    bar
+    bar + coord_flip()
+    bar + coord_polar()
+  # 3.9.1 Exercises
+    # 1 Done above.
+    # 2 It's a function that adds a layer of labels on the chart.
+      ?labs
+      bar + labs(title="Hey! I'm a title")
+    # 3 Something about a map. Not relevant to me, currently. Quick map preserve straight lines with quick approximation.
+      ?coord_quickmap
+      ?coord_map
+    # 4 Coord_fixed restores a fixed aspect ratio, so that the graph isn't stretched out. Geom_abline renders reference lines
+      ?coord_fixed
+      ?geom_abline
+      ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+        geom_point() + 
+        geom_abline() +
+        coord_fixed()
+      

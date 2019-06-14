@@ -8,7 +8,8 @@ import_question = readline(prompt="Reimport data from Google? Type 'yes'")
 if(toupper(import_question) == "YES") { source("import_script.R") }
 
 # WIP: Learning with R for Data Science
-source("learning_r.R")
+source("learning_r_chapter_3.R")
+source("learning_r_chapter_5.R")
 
 # WIP: Create normal distribution plots for
 source("create_normaldistribution_plots.R")
@@ -32,8 +33,6 @@ control_bmi <- na.omit(control$BMI)
 mean_myalgi <- mean(myalgi_bmi)
 mean_bmi <- mean(control_bmi)
 sd_bmi <- sd(control_bmi)
-
-glue("Mean BMI for control is {round(mean_bmi, 2)} (±{round(sd_bmi,2)})")
 
 mean(na.omit(high_cholesterol$`Total Cholesterol mmol/L`))
 mean(na.omit(control$`Total Cholesterol mmol/L`))
