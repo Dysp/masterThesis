@@ -89,3 +89,70 @@ library(nycflights13)
       # JFK -> HNL
       arrange(flights, distance)
       # EWR -> PHL
+  # 5.4 Select columns with select()
+    # select() will select only the specified columns; aka it will remove the remainders
+    ?select
+    select(flights, year, month, day)
+    # Select all columns between year and day (which will include month as well)
+    select(flights, year:day)
+    # Select all columns except
+    select(flights, -(year:day))
+    # A number of helper functions exist to aid select()
+    # see all here:
+    ?select_helpers
+    # Examples:
+    # starts_with("abc"), here we expect "year" to be the only one left
+    select(flights, starts_with("ye"))
+    # ends_with("xyz")
+    select(flights, ends_with("ar"))
+    # contains("ijk")
+    select(flights, contains("ea"))
+    # matches("(.)\\1") - matches a regular expression
+    select(flights, matches(regex("ea")))
+    # While select() will remove all non-explicitly mentioned variables, rename() will keep them (and rename whatever chosen)
+    rename(flights, my_awesome_new_variable_year_name = year)
+    # The helper everything() describes all the variables. We can move variables around by this (moving distance and air_time to the left):
+    select(flights, distance, air_time, everything())
+    
+    # 5.4.1 Exercises
+      # 1
+        select(flights, dep_time, dep_delay, arr_time, arr_delay)
+      # 2 Duplicates are ignored 
+        select(flights, dep_time, dep_time, dep_time)
+      # 3 one_of? Matches variable names in a character vector. Not sure how it's different from just selecting them
+        ?one_of
+        vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+        select(flights, one_of(vars))
+        select(flights, vars)
+      # 4 By default the helper functions ignore case. It can be toggled off; and the following will find nothing
+        select(flights, contains("TIME", ignore.case = FALSE))
+
+#5.5 Add variables with mutate()
+  # It's helpful to add new columns; typically ones that are functions of already existing columns. For instance this could be height and weight columns combined into a BMI column
+  flights_sml <- select(flights, year:day, ends_with("delay"), distance, air_time)
+  mutate(flights_sml, gain = dep_delay - arr_delay, speed = distance / air_time * 60)
+  mutate(flights_sml, gain = dep_delay - arr_delay, hours = air_time / 60, gain_per_hour = gain / hours)
+  # If we only want to keep the new columns, use transmute - it will get rid of the existing columns
+  transmute(flights_sml, gain = dep_delay - arr_delay, hours = air_time / 60, gain_per_hour = gain / hours)
+  
+  # 5.5.1 Useful creation functions
+    # The function must be vectorized: it must take a vector of values as input, return a vector with the same number of values as output.
+    # Arithmetic operators can be used: +, -, *, / etc
+    # Modular arithmetic: %/% is integer division, %% is 'remainder',
+    # Logs: log(), log2(), log10() etc
+    # Offsets: lead(), lag()
+    # Cumulative and rolling aggregates; such as sums, products, mins, maxs: cumsum(), cumprod(), cummin(), cummax() & cummean()
+    # Logical comparisons such as <, <=, == etc.
+    # Ranking: min_rank(), row_number(), dense_rank(), percent_rank(), cume_dist(), ntile()
+  
+  # 5.5.2 Exercises
+    # It's mostly math exercises. I'm not here to learn math. The key take away message is that we can define our own functions and call them with mutate()/transmute()
+  
+# 5.6 Grouped summaries with summaries()
+  # It collapses a data frame into a single row. Here we find the means of dep_delay and air_time.
+  summarise(flights, delay = mean(dep_delay, na.rm = TRUE), mean(air_time, na.rm =TRUE ))
+  # summarise is very useful with group_by. Here we group by month and can therefore calculate the mean departure delay for that month
+  grouped_by_day <- group_by(flights, month)
+  summarise(grouped_by_day, delay = mean(dep_delay, na.rm = TRUE))
+  
+  # 5.6.1 Combining multiple operations with the pipe
