@@ -33,4 +33,59 @@ library(nycflights13)
     filter(flights, month == 11 | month == 12)
     # Can be written easier like
     filter(flights, month %in% c(11, 12))
+  
+  # 5.2.3 Missing values
+    x <- NA
+    is.na(x)
+    # filter() only includes values that are TRUE; NA and FALSE are omitted. If they should be included, ask for them explicitly
+    df <- tibble(x = c(1, NA, 3))
+    # Will not show NA
+    filter(df, x > 1)
+    # Will show NA (is.na(x) will equal to TRUE and thus include the NA)
+    filter(df, is.na(x) | x > 1)
     
+  # 5.2.4 Exercises
+    # 1 Find all flights that
+      # 1.1 Find all that had a delay of 2 or more hours
+        filter(flights, arr_delay >= 120)
+      # 1.2 Flew to Houston (IAH or HOU)
+        filter(flights, dest %in% c("IAH", "HOU"))
+      # 1.3 Were operated by United, American or Delta
+        # Cant find that parameter
+      # 1.4 Departed in summer (July, August or September)
+        filter(flights, month %in% c(7, 8, 9))
+      # 1.5 Arrived more than two hours late, but didn't leave late
+        filter(flights, arr_delay >= 120 & dep_delay < 1)
+      # 1.6 Were delayed by at least an hour, but made up over 30 mins in flight
+        filter(flights, arr_delay >= 60 & air_time > 30)
+      # 1.7 Departed between midnight and 6am
+        filter(flights, dep_time %in% (0:600))
+    # 2 Another useful dplyr filter is between. What does it do?
+      ?between
+      filter(flights, between(dep_time, 0, 600))
+    # 3 How many flights have a missing dep_time?
+      filter(flights, is.na(dep_time))
+      # Probably cancellations
+    # 4 NA
+  
+  # 5.3 Arrange rows with arrange()
+    # arrange() works similiar to filter(); instead of selecting rows, it changes their order.
+    arrange(flights, year, month, day)
+    # Default is ascending order; use desc() to re-order in a descending order
+    arrange(flights, arr_delay)
+    arrange(flights, desc(arr_delay))
+    # Missing values are always sorted in the end, regardless of ascending / descending order
+    
+    # 5.3.1 Exercises
+      # 1 How could you use arrange() to sort all missing values to the start?
+      arrange(flights, desc(is.na(dep_time)))
+      # 2 Sort flights to find the most delayed flights. Find the flights that left earliest.
+      arrange(flights, desc(dep_delay))
+      arrange(flights, dep_delay)
+      # 3 Sort flights to find the fastest flights.
+      arrange(flights, arr_delay)
+      # 4 Which flights travelled the longest? Which travelled the shortest?
+      arrange(flights, desc(distance))
+      # JFK -> HNL
+      arrange(flights, distance)
+      # EWR -> PHL
