@@ -151,8 +151,62 @@ library(nycflights13)
 # 5.6 Grouped summaries with summaries()
   # It collapses a data frame into a single row. Here we find the means of dep_delay and air_time.
   summarise(flights, delay = mean(dep_delay, na.rm = TRUE), mean(air_time, na.rm =TRUE ))
-  # summarise is very useful with group_by. Here we group by month and can therefore calculate the mean departure delay for that month
+  # summarise is very useful with group_by. "Then, when you use the dplyr verbs on a grouped data frame they’ll be automatically applied “by group”". Here we group by month and can therefore calculate the mean departure delay for that month
   grouped_by_day <- group_by(flights, month)
   summarise(grouped_by_day, delay = mean(dep_delay, na.rm = TRUE))
   
   # 5.6.1 Combining multiple operations with the pipe
+    # We might want to do this: Group flights by destination; summarise stuff; filter and then lastly; create a plot.
+    by_dest <- group_by(flights, dest)
+    delay <- summarise(by_dest,
+                       count = n(),
+                       dist = mean(distance, na.rm = TRUE),
+                       delay = mean(arr_delay, na.rm = TRUE)
+    )
+    delay <- filter(delay, count > 20, dest != "HNL")
+    ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+      geom_point(aes(size = count), alpha = 1/3) +
+      geom_smooth(se = FALSE)
+    
+    # Clean up the objects:
+    rm(by_dest, delay)
+    
+    # This can be rewritten with the Pipe
+    # This focuses on the transformations, not what’s being transformed, which makes the code easier to read. You can read it as a series of imperative statements: group, then summarise, then filter. As suggested by this reading, a good way to pronounce %>% when reading code is “then”.
+    
+    delays <- flights %>% 
+      group_by(dest) %>% 
+      summarise(
+        count = n(),
+        dist = mean(distance, na.rm = TRUE),
+        delay = mean(arr_delay, na.rm = TRUE)
+      ) %>% 
+      filter(count > 20, dest != "HNL")
+    ggplot(data = delays, mapping = aes(x = dist, y = delay)) +
+      geom_point(aes(size = count), alpha = 0.33) +
+      geom_smooth(se = FALSE)
+    
+  # 5.6.2 Missing values (NA)
+    # na.rm = TRUE will remove NA when running most aggregation function (aggregation = the formation of a number of things into a cluster.)
+  
+  # 5.6.3
+    # Whenever you do any aggregation, it’s always a good idea to include either a count (n()), or a count of non-missing values (sum(!is.na(x))). That way you can check that you’re not drawing conclusions based on very small amounts of data.
+  
+  # 5.6.4
+    # Measures of location: mean(x), median(x)
+    # Measures of spread: sd(x), IQR(x), mad(x)
+      # The interquartile range IQR(x) and median absolute deviation mad(x) are robust equivalents (to SD) that may be more useful if you have outliers
+    # Measures of rank: min(x), quantile(x), max(x). Quantiles are a generalisation of the median. For example, quantile(x, 0.25) will find a value of x that is greater than 25% of the values, and less than the remaining 75%.
+    # Measures of position: first(x), nth(x, 2), last(x)
+    # Counts: n() takes no arguments and returns the size of the current group. To count NA, do sum(!is.na(x)). To count the number of distinct (unique) values, use n_distinct(x)
+      # A simple count() also exists. You can optionally provide a weight variable, here seeing which plane travelled the longest distance
+      flights %>%
+        filter(!is.na(dep_delay), !is.na(arr_delay)) %>%
+        count(tailnum, wt = distance) %>%
+        arrange(desc(n))
+    # Counts and proportions of logical values: sum(x > 10), mean(y == 0)
+      
+  # 5.6.5 Grouping by multiple variables
+    
+# 5.7 Grouped mutates (and filters)
+      

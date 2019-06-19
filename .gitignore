@@ -1,6 +1,8 @@
 # History files
 .Rhistory
 .Rapp.history
+# Graphical renders
+graph_renders/
 
 # Session Data files
 .RData
