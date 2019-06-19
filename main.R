@@ -5,6 +5,8 @@ library(googlesheets4)
 library(tidyverse)
 # Import data from Google Sheets
 source("import_script.R")
+# Data can now be found in the variable allData
+allData
 # Include custom scripts for making plots
 source("plotting_scripts.R")
 
@@ -12,7 +14,23 @@ source("plotting_scripts.R")
 # Don't load these; just use them for reference for now
 #source("learning_r_chapter_3.R")
 #source("learning_r_chapter_5.R")
-allData
+
+anthropometricMeans <- allData %>%
+  group_by(Label) %>%
+  summarise(age = mean(Age, na.rm=TRUE),
+            bmi = mean(BMI, na.rm=TRUE),
+            sys = mean(Sys, na.rm=TRUE),
+            dia = mean(Dia, na.rm=TRUE),
+            heartRate = mean(HR, na.rm=TRUE),
+            hip = mean(Hip, na.rm=TRUE),
+            waist = mean(Waist, na.rm=TRUE),
+            rightThigh = mean(`Right thigh`, na.rm = TRUE),
+            leftThigh = mean(`Left thigh`, na.rm = TRUE),
+            leanBodyMass = mean(LBM, na.rm = TRUE),
+            fatPercentage = mean(`Fat tissue percentage`, na.rm = TRUE)
+            )
+
+anthropometricMeans
 
 grouped_by_label <- group_by(dataFrame, Label)
 
