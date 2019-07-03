@@ -5,6 +5,8 @@ library(googlesheets4)
 library(tidyverse)
 # Import data from Google Sheets
 source("import_script.R")
+# Import own helper functions
+source("functions.R")
 # Data can now be found in the variable allData
 allData
 # Include custom scripts for making plots
@@ -15,6 +17,84 @@ source("plotting_scripts.R")
 #source("learning_r_chapter_3.R")
 #source("learning_r_chapter_5.R")
 
+grouped_data <- allData %>%
+  group_by(Label)
+
+grouped_data
+
+control_group <- filter(grouped_data, Label == "Control")
+myst_group <- filter(grouped_data, Label == "Myalgia, Statins")
+st_group <- filter(grouped_data, Label == "Statins")
+hc_group <- filter(grouped_data, Label == "High cholesterol")
+
+our_results <- tibble(attribute = character(), myst_p_value = numeric(), st_p_value = numeric(), hc_p_value = numeric())
+for (name in names(grouped_data) ) {
+  if(is.numeric(grouped_data[[name]])) {
+    print(name)
+    myst_vector <- myst_group[[name]]
+    st_vector <- st_group[[name]]
+    hc_vector <- hc_group[[name]]
+    control_vector <- control_group[[name]]
+    
+    if(!all(is.na(control_vector))) {
+      myst_t_test <- t.test(myst_vector, control_vector, na.action = na.omit)
+      st_t_test <- t.test(st_vector, control_vector, na.action = na.omit)
+      hc_t_test <- t.test(hc_vector, control_vector, na.action = na.omit)
+      
+      our_results <- our_results %>%
+        add_row(attribute = str_interp("${name}"), myst_p_value = myst_t_test$p.value, st_p_value = st_t_test$p.value, hc_p_value = hc_t_test$p.value)
+    }
+  }
+}
+
+our_results
+
+
+
+
+t_test2 <- t.test(age_st, age_control)
+our_results <- our_results %>%
+  add_row(attribute = "age_st", p_value = t_test2$p.value)
+our_results
+
+
+
+
+
+
+
+# <rickyrick> I'd try allData %>% group_by(Label) %>% summarize_if(is.numeric, functions) or something
+allData %>%
+  group_by(Label) %>%
+  summarize_if(is.numeric, mean, na.rm = TRUE)
+
+for (variableName in names(allData)) {
+  if (is.numeric(allData[[variableName]])) {
+    print(str_interp("Running for '${variableName}'"))
+    sumData <- allData %>%
+      group_by(Label) %>%
+      select(allData[[variableName]]) %>%
+      summarise(
+        variableName = mean(allData[[variableName]], na.rm = TRUE),
+        variableName_sd = sd(allData[[variableName]], na.rm = TRUE),
+        variableName_se = se(allData[[variableName]], na.rm = TRUE))
+    print(sumData)
+    createMeanBarPlot(sumData, variableName) 
+  }
+}
+
+sumData <- allData %>%
+            group_by(Label) %>%
+            select(Age) %>%
+            summarise(
+              age = mean(Age, na.rm = TRUE),
+              age_sd = sd(Age, na.rm = TRUE),
+              age_se = se(Age, na.rm = TRUE))
+
+createMeanBarPlot(sumData, variable_name = "age")
+
+
+# Hardcoding: Group by label, calculate means and summarise
 anthropometricMeans <- allData %>%
   group_by(Label) %>%
   summarise(age = mean(Age, na.rm=TRUE),
@@ -28,54 +108,11 @@ anthropometricMeans <- allData %>%
             leftThigh = mean(`Left thigh`, na.rm = TRUE),
             leanBodyMass = mean(LBM, na.rm = TRUE),
             fatPercentage = mean(`Fat tissue percentage`, na.rm = TRUE)
-            )
+  )
 
-anthropometricMeans
+# Iterate over all columns and create bar plots for each grouped by label.
 
-grouped_by_label <- group_by(dataFrame, Label)
-
-summary <- summarise(grouped_by_label, 
-                     mean_chol = mean(`Total Cholesterol mmol/L`, na.rm = TRUE),
-                     sd_chol = sd(`Total Cholesterol mmol/L`, na.rm = TRUE),
-                     n_chol = n(),
-                     SE_chol = sd(`Total Cholesterol mmol/L`, na.rm = TRUE)/sqrt(n()))
-
-
-ggplot(data = summary, mapping = aes(x = Label, y = mean_chol, fill = Label)) +
-  geom_bar(stat ="identity") +
-  geom_errorbar(aes(ymin = mean_chol - SE_chol, ymax = mean_chol + SE_chol), width=0.05)
-
-
-# TODO: Create script that runs T tests for means of all 3 groups comparable to the control group
-
-########### Below this line is just messing around ########### 
-
-# Find means for all variables for all groups with NA removed
-ggplot(data = data) + 
-  stat_summary(
-    mapping = aes(x = Label, y = `Total Cholesterol mmol/L`, color = Label),
-    fun.ymin = min,
-    fun.ymax = max,
-    fun.y = median) +
-  geom_rug(mapping = aes(y = `Total Cholesterol mmol/L`, color = Label)) + 
-  coord_flip()
-
-?geom_rug
-(new_data <- mutate(data, fitness_pr_kg = `ml/min`/ data$Weight))
-ggplot(data = new_data) + geom_boxplot(mapping = aes(y = fitness_pr_kg, color = Label))
-
-?ylim
-
-(weight_summary <- summarise(grouped_by_label, 
-                             mean_weight = mean(Weight, na.rm = TRUE),
-                             sd_weight = sd(Weight, na.rm = TRUE),
-                             n_weight = n(),
-                             SE_weight = sd(Weight, na.rm = TRUE)/sqrt(n())))
-
-weight_plot <- ggplot(data = weight_summary, mapping = aes(x = Label, y = mean_weight, fill = Label)) +
-  geom_bar(stat ="identity") +
-  geom_errorbar(aes(ymin = mean_weight - sd_weight, ymax = mean_weight + sd_weight), width=0.01, color = "grey") +
-  geom_errorbar(aes(ymin = mean_weight - SE_weight, ymax = mean_weight + SE_weight), width=0.05)
-
-  ?geom_bar
+for (anthroVariable in names(anthropometricMeans)) {
+  createMeanBarPlot(data_input = anthropometricMeans, variable_name = anthroVariable)
+}
 
